@@ -1,8 +1,8 @@
-import { Jsonify, JsonValue } from 'type-fest'
+import type { JsonValue, Jsonify } from 'type-fest'
 
 export type RuntimeContext = 'devtools' | 'background' | 'popup' | 'options' | 'content-script' | 'window'
 
-export type Endpoint = {
+export interface Endpoint {
   context: RuntimeContext
   tabId: number
   frameId?: number
@@ -29,18 +29,13 @@ export interface IInternalMessage {
   timestamp: number
 }
 
-export interface IQueuedMessage {
-  resolvedDestination: string
-  message: IInternalMessage
-}
-
-export type StreamInfo = {
+export interface StreamInfo {
   streamId: string
   channel: string
   endpoint: Endpoint
 }
 
-export type HybridUnsubscriber = {
+export interface HybridUnsubscriber {
   (): void
   dispose: () => void
   close: () => void
@@ -67,21 +62,21 @@ export interface ProtocolMap {
   // bar: ProtocolWithReturn<string, number>
 }
 
-export type DataTypeKey = keyof ProtocolMap
+export type DataTypeKey = keyof ProtocolMap extends never ? string : keyof ProtocolMap
 
 export type GetDataType<
-  K extends DataTypeKey | string,
-  Fallback extends JsonValue
-> = K extends DataTypeKey
+  K extends DataTypeKey,
+  Fallback extends JsonValue = undefined,
+> = K extends keyof ProtocolMap
   ? ProtocolMap[K] extends ProtocolWithReturn<infer Data, any>
     ? Data
     : ProtocolMap[K]
   : Fallback
 
 export type GetReturnType<
-  K extends DataTypeKey | string,
-  Fallback extends JsonValue
-> = K extends DataTypeKey
+  K extends DataTypeKey,
+  Fallback extends JsonValue = undefined,
+> = K extends keyof ProtocolMap
   ? ProtocolMap[K] extends ProtocolWithReturn<any, infer Return>
     ? Return
     : void
